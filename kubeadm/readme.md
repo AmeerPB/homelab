@@ -2,11 +2,22 @@
 
 #### Basic steps
 
+1. Disable swap on all the master/worker nodes
 1. install containerd on all nodes
 2. install kubeadm on all nodes
 3. initialise the master node
 4. Once the master is initialised, prior to the worker joining, set up the POD n/w
 5. Join worker nodes with master node
+
+
+
+### Disable swap
+
+``` bash
+sudo swapoof -a
+```
+
+edit the file `/etc/fstab` and remove the swap entry
 
 
 ### Install and configure prerequisites
@@ -60,7 +71,71 @@ systemctl status containerd
 
 ```
 
-Goto the Cgroup drivers, 
+Goto the Cgroup drivers, set `systemd` as Cgroup driver
+
+https://kubernetes.io/docs/setup/production-environment/container-runtimes/#systemd-cgroup-driver
+https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd
+
+Remove all the lines in the file /etc/containerd/config.toml and add the following snippets 
+
+``` bash
+
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  ...
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+```
+
+Restart the containerd service
+
+``` bash
+systemctl restart containerd
+```
+
+### Installing kubeadm, kubelet and kubectl
+
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+
+``` bash
+
+sudo apt-get update
+# apt-transport-https may be a dummy package; if so, you can skip that package
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+# sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+```   
+``` bash
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+```   
+``` bash
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+```   
+
+
+### Initialise the master
+
+``` bash
+
+sudo kubeadm init --pod-network-cidr=10.50.0.0/16 --apiserver-advertise-address=192.168.1.48
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
