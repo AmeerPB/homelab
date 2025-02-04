@@ -149,6 +149,51 @@ cilium install --version 1.16.6
 
 
 
+#### HELM installation
+
+https://helm.sh/docs/intro/install/
+
+
+``` bash
+
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+#### Install cilium binary
+
+https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/
+
+
+```
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+CLI_ARCH=amd64
+if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+
+
+```
+
+#### Deploy cilium in K8s via HELM 
+
+```
+
+helm repo add cilium https://helm.cilium.io/
+
+helm install cilium cilium/cilium --namespace kube-system \
+--set ipam.mode=kubernetes \
+--set kubeProxyReplacement=strict \
+--set hubble.relay.enabled=true \
+--set hubble.ui.enabled=true
+
+
+```
+
+
 
 
 
