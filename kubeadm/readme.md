@@ -126,7 +126,7 @@ kubeadm init \
 ```
 
 
-### Install POD network only on the Master node
+### Install POD network (only on the Master node)
 
 https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/
 
@@ -187,7 +187,7 @@ helm install cilium cilium/cilium --namespace kube-system \
 ```
 
    
-#### Based on Cilium HELMinstall (doc)[https://docs.cilium.io/en/latest/network/kubernetes/kubeproxy-free/]
+#### Based on Cilium HELMinstall [doc](https://docs.cilium.io/en/latest/network/kubernetes/kubeproxy-free/)
 
 Download the Cilium release tarball and change to the kubernetes install directory   
 ``` bash
