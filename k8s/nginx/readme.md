@@ -16,6 +16,120 @@ helm install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 2.
 k get svc -n nginx-ingress
 ```
 
+&nbsp;
+
+## To deploy a nginx webserver with SSL certificate
+
+### 1. Verify that the secret exists
+
+``` bash
+kubectl get secret <your-secret-name> -n <your-namespace>
+```
+
+If you haven’t created the secret, you can do it like this:
+
+```bash
+kubectl create secret tls my-tls-secret \
+  --cert=path/to/tls.crt \
+  --key=path/to/tls.key \
+  -n default  # Change namespace if needed
+```  
+
+
+### 2. configure the deployment and service
+
+```nginx-deployment.yml```
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-server
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-server
+  template:
+    metadata:
+      labels:
+        app: nginx-server
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: test
+spec:
+  selector:
+    app: nginx-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+```
+
+### 3. Configure the Ingress
+
+```nginx-ingress.yml```
+
+```yml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: test
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - webapp1.machinesarehere.in
+      secretName: machinesarehere-tls
+  rules:
+    - host: webapp1.machinesarehere.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80
+```
+
+### 4. apply the files
+
+``` bash
+kubectl apply -f nginx-deployment.yml
+kubectl apply -f nginx-ingress.yml
+```
+
+### 5. Verify deployment
+
+```bash
+kubectl get pods -n default
+kubectl get svc -n default
+kubectl get ingress -n default
+```
+
+
+
+
+
+&nbsp;
+
 ## Create an INGRESS to deploy NGINX with domain name
 
 ```yml
@@ -48,7 +162,7 @@ k get ingress -n test
 
 
 
-
+&nbsp;
 
 
 ## To deploy NGINX with metallb loadBalancer
