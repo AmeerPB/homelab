@@ -89,7 +89,7 @@
 > sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
 > 
 > sudo cp -pr /etc/containerd/config.toml /etc/containerd/config.toml-original
-> sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g'
+> sudo sed -i 's/^\(\s*\)SystemdCgroup = false/\1SystemdCgroup = true/' /etc/containerd/config.toml
 > 
 > sudo systemctl status containerd
 > sudo systemctl restart containerd
