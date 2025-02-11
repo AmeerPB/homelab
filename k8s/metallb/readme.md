@@ -30,7 +30,7 @@ spec:
   ```
 
 ``` bash
-k apply -f IP-pool.yml -n metallb-system
+k apply -f IPAddressPool.yml -n metallb-system
 k get IPAddressPool -n metallb-system
 ```
 
