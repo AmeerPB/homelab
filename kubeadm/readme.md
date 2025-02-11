@@ -153,6 +153,27 @@
 > ```
 > 
 > ### Install cilium via HELM
+> 
+> with replacing kube-proxy
+> 
+> ``` bash
+> helm install cilium cilium/cilium --version 1.17.0 \
+>   --namespace kube-system \
+>   --set hubble.relay.enabled=true \
+>   --set hubble.ui.enabled=true \
+>   --set prometheus.enabled=true \
+>   --set operator.prometheus.enabled=true \
+>   --set hubble.enabled=true \
+>   --set hubble.metrics.enableOpenMetrics=true \
+>   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2}" \
+>   --set hubble.metrics.httpV2.exemplars=true \
+>   --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}" \
+>   --set cluster.poolIPv4PodCIDR="10.50.0.0/16" \
+>   --set kubeProxyReplacement=true
+> ```  
+> 
+> without replacing kube-proxy
+> 
 > ``` bash
 > helm install cilium cilium/cilium --version 1.17.0 \
 >   --namespace kube-system \
