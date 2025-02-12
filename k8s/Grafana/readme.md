@@ -1,6 +1,6 @@
 ## Grafana installation via HELM
 
-1. Go to https://artifacthub.io/
+1. Go to **[Artifact Hub](https://artifacthub.io/)**
 2. search for Grafana
 3. Install Grafana
     ``` bash
