@@ -12,8 +12,9 @@
     helm install prometheus prometheus-community/prometheus --version 27.3.0
     ```
 4. Verify the Installation
-    ``` bash
-    kubectl get all -n default ```
+    ```bash
+    kubectl get all -n default
+    ```
 5. Take a backup of the service
     ``` bash
     kubectl get svc -n default | grep prometheus
