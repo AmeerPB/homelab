@@ -9,8 +9,7 @@
     helm install grafana grafana/grafana --version 8.9.0
     ```
 4. Verify the Installation
-    ``` bash
-    kubectl get all -n default ```
+    ```kubectl get all -n default```
 5. Take a backup of the service
     ``` bash
     kubectl get svc -n default | grep grafana
