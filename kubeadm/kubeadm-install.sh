@@ -5,16 +5,14 @@ echo -e "> \e[31m | | ___   _| |__   ___  __ _  __| |_ __ ___  \e[0m"
 echo -e "> \e[31m | |/ / | | | '_ \ / _ \/ _` |/ _` | '_ ` _ \ \e[0m"
 echo -e "> \e[31m |   <| |_| | |_) |  __/ (_| | (_| | | | | | |\e[0m"
 echo -e "> \e[31m |_|\_\\__,_|_.__/ \___|\__,_|\__,_|_| |_| |_|\e[0m"
-echo ""
-echo ""
+
 
 
 # Disable swap
 sed -i '/^swap/s/^/#/' /etc/fstab
 sudo swapoof -a
 echo -e "> \e[32mSwap disabled\e[0m"
-echo ""
-echo ""
+
 
 # Change the hostname with a FQDN
 hostnamectl set-hostname $HOST_NAME
