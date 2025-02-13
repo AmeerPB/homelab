@@ -9,6 +9,12 @@
 4. Once the master is initialised, prior to the worker joining, set up the POD n/w
 5. Join worker nodes with master node
 
+> [!NOTE]
+> 
+> To install with the script, please set a proper FQDN for the hostname in the variable HOST_NAME first. Only then run the script. 
+
+
+
 &nbsp;
 > [!NOTE]  
 > Method 1
@@ -70,6 +76,7 @@
 > ``` bash
 > sudo modprobe overlay
 > sudo modprobe br_netfilter
+> sudo modprobe dm_crypt
 > 
 > cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 > overlay
