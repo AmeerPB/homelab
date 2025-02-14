@@ -39,7 +39,7 @@ helm upgrade \
   --set-string oauth.clientSecret="<OAuth client secret>" \
   --wait
 ```  
-- Expose cluster workloads using a Kubernetes Ingress.   
+- Expose cluster workloads using a Kubernetes Ingress. Make sure to add the ```Tailnet name``` to the ```hosts``` in the Ingress.
 
 ```grafana-ingress-tailscale.yml```
 
@@ -59,3 +59,7 @@ spec:
     - hosts:
         - grafana.xxxxxxx.xxxxx.ts.net
 ```        
+- Confirm the Ingress is deplyed.
+``` bash
+kubectl get ing -A
+```
