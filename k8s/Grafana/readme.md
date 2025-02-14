@@ -51,7 +51,7 @@
     ```
 7. Create a new Ingress for grafana
     ``` bash
-    cat <<EOL | tee -a grafana-ingress.yml
+    cat <<EOF | tee -a grafana-ingress.yml
     apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
@@ -76,7 +76,7 @@
                     name: grafana
                     port:
                       number: 3000
-
+    EOF
     apply -f grafana-ingress.yml
     ```    
 8. Verify the Installation
