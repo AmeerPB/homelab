@@ -79,3 +79,15 @@ spec:
       secretName: machinesarehere-tls
 EOF
 ```      
+
+## Get the Admin credential from the secret
+
+The initial password for the admin account is auto-generated and stored as clear text in the field password in a secret named argocd-initial-admin-secret in your Argo CD installation namespace. 
+
+``` bash
+kubectl get secret -n argocd argocd-initial-admin-secret -o yaml
+```
+
+echo the ```data.password``` and decode from base64 will printout the admin password.
+
+
