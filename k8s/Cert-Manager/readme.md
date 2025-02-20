@@ -18,7 +18,7 @@ helm install \
 
 ## Create a secret with the CloudFlare API key
 
-[!Reference]()
+![Reference](Images/cloudflare_API_Key.png)
 
 ``` yaml
 apiVersion: v1
@@ -30,3 +30,5 @@ type: Opaque
 stringData:
   api-key: "<YOUR_CLOUDFLARE_API_KEY>"
 ```  
+
+
