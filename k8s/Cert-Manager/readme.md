@@ -31,4 +31,23 @@ stringData:
   api-key: "<YOUR_CLOUDFLARE_API_KEY>"
 ```  
 
+## Create a cluster Issuer
 
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: cloudflare-clusterissuer
+spec:
+  acme:
+    email: cert@xsec.in
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: cloudflare-clusterissuer-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-key-secret
+              key: api-key
+```              
