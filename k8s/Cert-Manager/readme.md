@@ -51,3 +51,34 @@ spec:
               name: cloudflare-api-key-secret
               key: api-key
 ```              
+
+## Create a certificate
+
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: machinesarehere-tls
+  namespace: production
+spec:
+  secretName: machinesarehere-tls-secret
+  issuerRef:
+    name: cloudflare-clusterissuer
+    kind: ClusterIssuer
+  dnsNames:
+    - machinesarehere.in
+    - "*.machinesarehere.in"
+```
+verify the certificate generation
+
+``` bash
+kubectl get certificate -n dev
+kubectl describe certificate machinesarehere-tls -n dev
+```
+
+Describe the ```certificaterequest``` object to see the actual status whether it is issued or not.
+
+``` bash
+kubectl get certificaterequest -n dev
+kubectl describe certificaterequest machinesarehere-tls-1 -n dev
+```
