@@ -16,185 +16,191 @@
 
 
 &nbsp;
-> [!NOTE]  
-> Method 1
-> 
-> 
-> ## Disable swap
-> 
-> ``` bash
-> sudo swapoof -a
-> ```
-> 
-> edit the file `/etc/fstab` and remove the swap entry
-> 
-> 
-> ## Update the packages
-> 
-> ``` bash
-> sudo apt update && sudo apt upgrade -y
-> ```
-> 
-> ## Install Container Runtime
-> 
-> **[Reference URL](https://docs.docker.com/engine/install/ubuntu/)**
-> 
-> ``` bash
-> for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-> 
-> # Add Docker's official GPG key:
-> sudo apt-get update
-> sudo apt-get install ca-certificates curl
-> sudo install -m 0755 -d /etc/apt/keyrings
-> sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-> sudo chmod a+r /etc/apt/keyrings/docker.asc
-> 
-> # Add the repository to Apt sources:
-> echo \
->   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
->   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
->   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-> sudo apt-get update
-> 
-> sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-> ```
-> 
-> Add local user to docker group
-> 
-> ``` bash
-> sudo usermod -aG docker $USER
-> ```
-> Exit and re-login.
-> 
-> ## Enable the following kernel modules
-> **[Reference URL](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#prerequisite-ipv4-forwarding-optional)**
-> 
-> - [ ] IPv4 Packet forwarding
-> - [ ] Overlay
-> - [ ] br_netfilter
-> 
-> ``` bash
-> sudo modprobe overlay
-> sudo modprobe br_netfilter
-> sudo modprobe dm_crypt
-> 
-> cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-> overlay
-> br_netfilter
-> EOF
-> 
-> cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-> net.ipv4.ip_forward=1
-> EOF
-> 
-> sudo sysctl --system
-> ```
-> 
-> ## Configure the Cgroup driver
-> 
-> ``` bash
-> sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
-> 
-> sudo cp -pr /etc/containerd/config.toml /etc/containerd/config.toml-original
-> sudo sed -i 's/^\(\s*\)SystemdCgroup = false/\1SystemdCgroup = true/' /etc/containerd/config.toml
-> 
-> sudo systemctl status containerd
-> sudo systemctl restart containerd
-> sudo systemctl status containerd
-> ```
-> 
-> ## Install kubelet kubeadm and kubectl
-> **[Reference URL](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)**
-> 
-> ``` bash
-> sudo apt update
-> sudo apt install -y apt-transport-https ca-certificates curl gpg
-> 
-> curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-> 
-> echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-> 
-> sudo apt-get update
-> sudo apt-get install -y kubelet kubeadm kubectl
-> sudo apt-mark hold kubelet kubeadm kubectl
-> ```
-> 
-> ## Change the hostname with a FQDN
-> ``` bash
-> hostnamectl set-hostname <hostname in FQDN>
-> hostnamectl
-> ```
-> 
-> ## Initialise the kubeadm on Master/Controlplane node
-> 
-> ``` bash
-> sudo kubeadm init \
->   --pod-network-cidr 10.50.0.0/16 \
->   --control-plane-endpoint "192.168.1.48:6443" \
->   --upload-certs --v=5
-> ```
-> 
-> ## Install helm
-> **[Reference URL](https://helm.sh/docs/intro/install/)**
-> 
-> ``` bash
-> curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-> chmod 700 get_helm.sh
-> ./get_helm.sh
-> ```
-> 
-> ## Install CNI
-> 
-> ### Install cilium binary
-> 
-> **[Reference URL](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/)**
-> 
-> ``` bash
-> CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-> CLI_ARCH=amd64
-> if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
-> curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-> sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
-> sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
-> rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-> ```
-> 
-> ### Install cilium via HELM
-> 
-> with replacing kube-proxy
-> 
-> ``` bash
-> helm install cilium cilium/cilium --version 1.17.0 \
->   --namespace kube-system \
->   --set hubble.relay.enabled=true \
->   --set hubble.ui.enabled=true \
->   --set prometheus.enabled=true \
->   --set operator.prometheus.enabled=true \
->   --set hubble.enabled=true \
->   --set hubble.metrics.enableOpenMetrics=true \
->   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2}" \
->   --set hubble.metrics.httpV2.exemplars=true \
->   --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}" \
->   --set cluster.poolIPv4PodCIDR="10.50.0.0/16" \
->   --set kubeProxyReplacement=true
-> ```  
-> 
-> without replacing kube-proxy
-> 
-> ``` bash
-> helm install cilium cilium/cilium --version 1.17.0 \
->   --namespace kube-system \
->   --set hubble.relay.enabled=true \
->   --set hubble.ui.enabled=true \
->   --set prometheus.enabled=true \
->   --set operator.prometheus.enabled=true \
->   --set hubble.enabled=true \
->   --set hubble.metrics.enableOpenMetrics=true \
->   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
-> ```
-> 
-> ## Add CSI for volume persistence
-> 
+[!NOTE]  
+Method 1
+
+
+## Disable swap
+
+``` bash
+sudo swapoof -a
+```
+
+edit the file `/etc/fstab` and remove the swap entry
+
+
+## Update the packages
+
+``` bash
+sudo apt update && sudo apt upgrade -y
+```
+
+## Install Container Runtime
+
+**[Reference URL](https://docs.docker.com/engine/install/ubuntu/)**
+
+``` bash
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+```
+
+Add local user to docker group
+
+``` bash
+sudo usermod -aG docker $USER
+```
+Exit and re-login.
+
+## Enable the following kernel modules
+**[Reference URL](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#prerequisite-ipv4-forwarding-optional)**
+
+- [ ] IPv4 Packet forwarding
+- [ ] Overlay
+- [ ] br_netfilter
+
+``` bash
+sudo modprobe overlay
+sudo modprobe br_netfilter
+sudo modprobe dm_crypt
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward=1
+EOF
+
+sudo sysctl --system
+```
+
+## Configure the Cgroup driver
+
+``` bash
+sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+
+sudo cp -pr /etc/containerd/config.toml /etc/containerd/config.toml-original
+sudo sed -i 's/^\(\s*\)SystemdCgroup = false/\1SystemdCgroup = true/' /etc/containerd/config.toml
+
+sudo systemctl status containerd
+sudo systemctl restart containerd
+sudo systemctl status containerd
+```
+
+## Install kubelet kubeadm and kubectl
+**[Reference URL](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)**
+
+``` bash
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl gpg
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+
+## Change the hostname with a FQDN
+``` bash
+hostnamectl set-hostname <hostname in FQDN>
+hostnamectl
+```
+
+## Initialise the kubeadm on Master/Controlplane node
+
+``` bash
+sudo kubeadm init \
+  --pod-network-cidr 10.50.0.0/16 \
+  --control-plane-endpoint "192.168.1.48:6443" \
+  --upload-certs --v=5
+```
+
+## Install helm
+**[Reference URL](https://helm.sh/docs/intro/install/)**
+
+``` bash
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+## Install CNI
+
+### Install cilium binary
+
+**[Reference URL](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/)**
+
+``` bash
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+CLI_ARCH=amd64
+if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+```
+
+### Install cilium via HELM
+
+with replacing kube-proxy
+
+Updated (on 20thFeb2025)
+
+> [!NOTE]
+> The issue is that your original command used the incorrect cluster.poolIPv4PodCIDR setting, which is not a valid Helm value for configuring Cilium's cluster-pool mode. Instead, you need to use the correct IPAM settings (ipam.mode=cluster-pool and ipam.operator.clusterPoolIPv4PodCIDR)
+
+
+``` bash
+helm install cilium cilium/cilium --version 1.17.0 \
+  --namespace kube-system \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.metrics.enableOpenMetrics=true \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2}" \
+  --set hubble.metrics.httpV2.exemplars=true \
+  --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}" \
+  --set cluster.poolIPv4PodCIDR="10.50.0.0/16" \
+  --set kubeProxyReplacement=true
+```  
+
+without replacing kube-proxy
+
+``` bash
+helm install cilium cilium/cilium --version 1.17.0 \
+  --namespace kube-system \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.metrics.enableOpenMetrics=true \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
+```
+
+## Add CSI for volume persistence
+
 
 
 
