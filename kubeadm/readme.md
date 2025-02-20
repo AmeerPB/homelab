@@ -168,6 +168,38 @@ Updated (on 20thFeb2025)
 > [!NOTE]
 > The issue is that your original command used the incorrect cluster.poolIPv4PodCIDR setting, which is not a valid Helm value for configuring Cilium's cluster-pool mode. Instead, you need to use the correct IPAM settings (ipam.mode=cluster-pool and ipam.operator.clusterPoolIPv4PodCIDR)
 
+Here is the corrected Helm install command that includes both the correct IPAM settings and your additional features like Hubble, Prometheus, and kube-proxy replacement:
+
+``` bash
+helm install cilium cilium/cilium --version 1.17.0 \
+  --namespace kube-system \
+  --set ipam.mode=cluster-pool \
+  --set ipam.operator.clusterPoolIPv4PodCIDR="10.50.0.0/16" \
+  --set ipam.operator.clusterPoolIPv4MaskSize=24 \
+  --set kubeProxyReplacement=true \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.metrics.enableOpenMetrics=true \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2}" \
+  --set hubble.metrics.httpV2.exemplars=true \
+  --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}"
+```
+
+
+
+> [!WARN]
+> 
+> Old onme used to create the Cilium CNI, but still getting the 10.0.0.0/8 CIDR
+> ``` python
+> root@k8s:~/k8s/2/ArgoCD# k logs cilium-2sv4h -n kube-system | grep -i ipv4 | grep cluster-pool
+> 
+> Defaulted container "cilium-agent" out of: cilium-agent, config (init), mount-cgroup (init), apply-sysctl-overwrites (init), mount-bpf-fs (init), clean-cilium-state (init), install-cni-binaries (init)
+> time="2025-02-19T12:01:46.505809749Z" level=info msg="  --cluster-pool-ipv4-cidr='10.0.0.0/8'" subsys=daemon
+> time="2025-02-19T12:01:46.50581576Z" level=info msg="  --cluster-pool-ipv4-mask-size='24'" subsys=daemon
+```
 
 ``` bash
 helm install cilium cilium/cilium --version 1.17.0 \
