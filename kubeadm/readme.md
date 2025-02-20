@@ -190,7 +190,7 @@ helm install cilium cilium/cilium --version 1.17.0 \
 
 
 
-> [!WARN]
+> [!WARNING]
 > 
 > Old onme used to create the Cilium CNI, but still getting the 10.0.0.0/8 CIDR
 > ``` python
