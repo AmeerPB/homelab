@@ -5,8 +5,8 @@ services:
       # ⚠️ Required:
       # Change this to your host's public address
       - WG_HOST=vps.machinesarehere.in # The public hostname of your VPN server.
-      - PASSWORD="Wv0QL5x0uL9FaqIzVrYPDHb7NyopdrGWPAx"
-      - WG_ALLOWED=10.50.0.0/16
+      - PASSWORD_HASH=<hash generated with htpasswd>
+      - WG_ALLOWED=10.10.0.0/16
 
       # Optional:
       # - PASSWORD=foobar123 # When set, requires a password when logging in to the Web UI.
