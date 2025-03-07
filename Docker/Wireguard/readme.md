@@ -115,10 +115,46 @@ services:
       - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
 
+services:
+  wg-easy:
+    environment:
+      - WG_HOST=wg.machinesarehere.in
+      - PASSWORD_HASH=<hash-obtained-via-htpasswd>
+      - WG_ALLOWED=10.10.0.0/16
+      - WG_DEFAULT_DNS=172.10.0.3 
+    image: ghcr.io/wg-easy/wg-easy:nightly
+    container_name: wg-easy
+    volumes:
+      - /home/debian/Docker/Wireguard:/etc/wireguard
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    networks:
+      traefik-proxy:  
+        ipv4_address: 172.10.0.4
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wg.entrypoints=http"
+      - "traefik.http.routers.wg.rule=Host(`wg.machinesarehere.in`)"
+      - "traefik.http.routers.wg-secure.entrypoints=https"
+      - "traefik.http.routers.wg-secure.rule=Host(`wg.machinesarehere.in`)"
+      - "traefik.http.routers.wg-secure.tls=true"
+      - "traefik.http.routers.wg-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.wg-secure.tls.domains[0].main=machinesarehere.in"
+      - "traefik.http.routers.wg-secure.tls.domains[0].sans=*.machinesarehere.in"
+      - "traefik.http.services.wg.loadbalancer.server.port=51821" 
 
 
 
 
 networks:
   traefik-proxy:
+    name: traefik-proxy  
     external: true
