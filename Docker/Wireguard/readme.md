@@ -56,8 +56,8 @@ services:
       - 80:80
       - 443:443
     environment:
-      - CF_API_EMAIL=ameerpbabu@gmail.com
-      - CF_DNS_API_TOKEN=re5SLWhuAkpXZTDgx3WG_KbJEoIgGEYr7460j6TL
+      - CF_API_EMAIL=<email-address>
+      - CF_DNS_API_TOKEN=xxxxxxxxxxxxxxxxxxxx
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -69,7 +69,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.entrypoints=http"
       - "traefik.http.routers.traefik.rule=Host(`traefik.machinesarehere.in`)"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$2y$10$6DCLyHBiZcVWTwLPF5alL.Cx1lceRVSiS7Dw8PCkVS4rxZUG93W/m"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:xxxxxxxxxxxxxxxxxxxxxxxxxx"
       - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
