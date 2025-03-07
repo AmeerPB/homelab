@@ -16,3 +16,14 @@ htpasswd -bnBC 10 "" "YourSecurePassword" | tr -d ':\n'
 #  "YourSecurePassword" → Replace this with your actual password.
 #  tr -d ':\n' → Removes unnecessary : and newline characters from output.
 ```
+
+## Create a Docker network
+
+``` bash
+docker network create \
+  --driver=bridge \
+  --subnet=172.10.0.0/16 \
+  traefik-proxy
+```
+
+
