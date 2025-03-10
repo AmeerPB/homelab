@@ -10,10 +10,13 @@ mkdir Prometheus
 [Git Reference](https://github.com/prometheus/node_exporter/releases)  
 
 ``` bash
-wget https://github.com/prometheus/node_exporter/releases/download/v1.9.0/node_exporter-1.9.0.linux-arm64.tar.gz
-tar xzf node_exporter-1.9.0.linux-arm64.tar.gz
-mv node_exporter-1.9.0.linux-arm64/node_exporter /usr/local/bin/
-rm -rf node_exporter-1.9.0.linux-arm64*
+LATEST_VERSION=$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | jq -r .tag_name)
+VERSION_ID=$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | jq -r .tag_name | cut -c2-)
+wget https://github.com/prometheus/node_exporter/releases/download/$LATEST_VERSION/node_exporter-$VERSION_ID.linux-arm64.tar.gz
+tar xzf node_exporter-$VERSION_ID.linux-arm64.tar.gz
+mv node_exporter-$VERSION_ID.linux-arm64/node_exporter /usr/local/bin/
+rm -rf node_exporter-$VERSION_ID.linux-arm64
+rm node_exporter-$VERSION_ID.linux-arm64.tar.gz
 
 useradd --no-create-home --shell /bin/false node_exporter
 chown node_exporter:node_exporter /usr/local/bin/node_exporter
