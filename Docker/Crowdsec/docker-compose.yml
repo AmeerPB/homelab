@@ -1,0 +1,61 @@
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    environment:
+      GID: "${GID-1000}"
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik"
+    volumes:
+      - ./acquis.yaml:/etc/crowdsec/acquis.yaml
+      - ./db:/var/lib/crowdsec/data/
+      - ./config:/etc/crowdsec/
+      - /home/debian/Docker/Traefik/logs:/var/log/traefik/:ro
+    networks:
+      - traefik-proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  bouncer-traefik:
+    image: docker.io/fbonalair/traefik-crowdsec-bouncer:latest
+    container_name: bouncer-traefik
+    environment:
+      CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_BOUNCER_API_KEY}
+      CROWDSEC_AGENT_HOST: crowdsec:8080
+    networks:
+      - traefik-proxy
+    depends_on:
+      - crowdsec
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  dashboard:
+    #we're using a custom Dockerfile so that metabase pops with pre-configured dashboards
+    container_name: crowdsec-dashboard
+    build: .
+    restart: always
+    environment:
+      MB_DB_FILE: /data/metabase.db
+      MGID: 1000
+        #      MB_EMAIL: ${MB_EMAIL}
+        #      MB_PASSWORD: ${MB_PASSWORD}
+    depends_on:
+      - crowdsec
+    volumes:
+      - ./db:/metabase-data           
+    networks:
+      - traefik-proxy        
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.crowdsecdash.rule=Host(`crowdsec-dash.machinesarehere.in`)"
+      - "traefik.http.routers.crowdsecdash.entrypoints=websecure"      
+      - "traefik.http.routers.crowdsecdash-secure.rule=Host(`crowdsec-dash.machinesarehere.in`)"
+      - "traefik.http.routers.crowdsecdash-secure.tls=true"
+      - "traefik.http.routers.crowdsecdash-secure.tls.certresolver=cloudflare"
+      - "traefik.http.services.crowdsecdash.loadbalancer.server.port=3000"    
+
+networks:
+  traefik-proxy:
+    external: true
+
