@@ -1,0 +1,16 @@
+services:
+  terraform:
+    container_name: terraform-awscli
+    image: terraform-awscli:latest
+    volumes:
+      - ./workspace/ameer/:/workspace
+      - ./workspace/aws-creds/:/root/.aws
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    networks:
+      - terraform-awscli
+
+networks:
+  terraform-awscli:
+    external: true
