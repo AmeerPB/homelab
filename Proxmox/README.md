@@ -23,3 +23,9 @@ chmod 640 /etc/pve/local/pveproxy-ssl.*
 systemctl restart pveproxy
 ```
 
+<br>
+
+# Steps to create a cloud-init vm template
+
+
+
