@@ -27,5 +27,22 @@ systemctl restart pveproxy
 
 # Steps to create a cloud-init vm template
 
+``` bash
+# Install libguestfs-tools so that we can install the qemu-guest-agent on to the downloaded image
+apt install libguestfs-tools
+
+# Install the qemu-guest-agent package
+virt-customize -a debian-12-generic-amd64.qcow2 --install qemu-guest-agent
+
+# Crete a new VM
+qm create 1001 --memory 2048 --core 2 --name k8s-Master --net0 virtio,bridge=vmbr0
+
+# Import the downloaded Debian disk to local storage 
+qm disk import 1001 debian-12-generic-amd64.qcow2 local-lvm
+
+
+
+```
+<br>
 
 
