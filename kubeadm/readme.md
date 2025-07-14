@@ -2,6 +2,7 @@
 
 #### Basic steps
 
+1. Create a (Debian 12) VM from the template and assign static IP (via netplan)
 1. Disable swap on all the master/worker nodes
 1. install containerd on all nodes
 2. install kubeadm on all nodes
@@ -18,6 +19,53 @@
 &nbsp;
 [!NOTE]  
 Method 1
+
+
+## Assign static IP
+
+Disable cloud-init's network configuration capabilities, create the following file 
+
+``` bash
+touch /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+echo "network: {config: disabled}" >> /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+```
+
+Modify the ```eth0``` interface on the ```/etc/netplan/50-cloud-init.yaml``` file
+
+change from 
+
+``` yaml
+network:
+    version: 2
+    ethernets:
+        eth0:
+            dhcp4: true
+            match:
+                macaddress: bc:24:11:e8:31:01
+            set-name: eth0
+```            
+
+to this
+
+``` yaml
+network:
+    version: 2
+    ethernets:
+        eth0:
+            dhcp4: false
+            addresses:
+              - 192.168.1.200/24
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses:
+                - 192.168.1.250
+```
+
+Then apply the configurations
+
+``` bash 
+netplan apply 
+```
 
 
 ## Disable swap
