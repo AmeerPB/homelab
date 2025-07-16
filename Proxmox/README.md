@@ -40,7 +40,22 @@ qm create 1001 --memory 2048 --core 2 --name k8s-Master --net0 virtio,bridge=vmb
 # Import the downloaded Debian disk to local storage 
 qm disk import 1001 debian-12-generic-amd64.qcow2 local-lvm
 
+# Attach the new disk to the vm as a scsi drive on the scsi controller
+qm set 1001 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1001-disk-0
 
+# Add cloud init drive
+qm set 1001 --ide2 local-lvm:cloudinit
+
+# Make the cloud init drive bootable and restrict BIOS to boot from disk only
+qm set 1001 --boot c --bootdisk scsi0
+
+# Add serial console
+qm set 1001 --serial0 socket --vga serial0
+
+# Add SSH Pub key and DNS server IP's in the cloud init console of the VM 1001
+
+# Create template
+qm template 1001
 
 ```
 <br>
