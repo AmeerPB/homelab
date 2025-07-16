@@ -25,7 +25,7 @@ systemctl restart pveproxy
 
 <br>
 
-# Steps to create a cloud-init vm template
+# Steps to create a cloud-init vm template (with qemu guest agent)
 
 ``` bash
 # Install libguestfs-tools so that we can install the qemu-guest-agent on to the downloaded image
