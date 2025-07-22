@@ -1,0 +1,8 @@
+aws_region    = "us-east-1"
+my_ip         = "xxxxxxxx/32"
+instance_ami  = "ami-020cba7c55df1f615"
+instance_type = "t2.micro"
+instance_name = "Prowler"
+ssh_key_path  = "/home/ameer/.ssh/id_rsa.pub"
+vpc_id        = "vpc-xxxxxxxxx"
+subnet_id     = "subnet-xxxxxxxxxxxxx"
