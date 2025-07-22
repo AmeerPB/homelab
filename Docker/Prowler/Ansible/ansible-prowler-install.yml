@@ -91,3 +91,10 @@
         owner: ubuntu
         group: ubuntu
         mode: '0644'
+
+    - name: Run docker compose up -d in Prowler directory
+      become: true
+      become_user: ubuntu
+      command: docker compose up -d
+      args:
+        chdir: "{{ prowler_dir }}"
