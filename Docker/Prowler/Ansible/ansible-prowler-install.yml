@@ -41,12 +41,6 @@
         dest: /etc/apt/keyrings/docker.asc
         mode: '0644'
 
-    # - name: Add Docker repository to APT sources
-    #   copy:
-    #     content: "{{ docker_apt_repo }}\n"
-    #     dest: "{{ docker_list }}"
-    #     mode: '0644'
-
     - name: Add Docker APT repository
       apt_repository:
         repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
