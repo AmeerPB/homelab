@@ -14,6 +14,7 @@ resource "aws_instance" "web_server" {
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.prowler.id]
   associate_public_ip_address = true
+  user_data                   = file("user_data.sh")  
   tags = {
     Name = var.instance_name
   }
