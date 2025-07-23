@@ -97,6 +97,9 @@ qm template $VMID
 
 # 8. Enable Start at boot
 qm set $VMID --onboot 1
+
+# 9. Create a user
+qm set $VMID --ciuser $USER_NAME
 ```
 
 
