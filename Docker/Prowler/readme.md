@@ -12,6 +12,7 @@
 
 
 ## Run the prowler CLI to get the scan output on local directory
+[Reference](https://docs.prowler.com/projects/prowler-open-source/en/latest/#prowler-cli)
 
 ``` bash
 docker run -ti --rm \
