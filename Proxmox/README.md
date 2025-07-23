@@ -69,6 +69,7 @@ VMNAME="k8s-Master"
 MEM=2048
 CORES=2
 IMAGE="debian-12-generic-amd64.qcow2"
+NAME_SERVER=192.168.1.250
 
 # 1. Install and enable qemu-guest-agent inside the image
 virt-customize -a $IMAGE \
