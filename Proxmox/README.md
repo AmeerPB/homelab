@@ -7,6 +7,11 @@ mv /etc/pve/local/pveproxy-ssl.pem /etc/pve/local/pveproxy-ssl.pem.bak
 mv /etc/pve/local/pveproxy-ssl.key /etc/pve/local/pveproxy-ssl.key.bak
 ```
 
+## Generate cert using certbot locally with DNS challenge
+``` bash
+sudo certbot certonly --manual --preferred-challenges=dns -d machinesarehere.in -d *.machinesarehere.in
+```
+
 ## Copy the new certificates:
 ``` bash
 cp /etc/letsencrypt/live/proxmox.yourdomain.com/fullchain.pem /etc/pve/local/pveproxy-ssl.pem
