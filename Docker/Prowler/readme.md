@@ -25,3 +25,18 @@ toniblyx/prowler:latest
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 ```
+
+```docker-compose.yml```
+``` yaml
+services:
+  prowler:
+    image: toniblyx/prowler:latest
+    container_name: prowler
+    env_file:
+      - .env
+    volumes:
+      - ./output:/home/prowler/output
+    stdin_open: true    # Enables interactive mode (-i)
+    tty: true           # Enables pseudo-TTY (-t)
+    restart: "no"       # Equivalent to --rm (container auto-removal not native in Compose)
+```    
