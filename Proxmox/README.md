@@ -60,7 +60,43 @@ qm template 1001
 ```
 <br>
 
-### 
+### script to create a template
+
+``` bash
+# Variables
+VMID=1001
+VMNAME="k8s-Master"
+MEM=2048
+CORES=2
+IMAGE="debian-12-generic-amd64.qcow2"
+
+# 1. Install and enable qemu-guest-agent inside the image
+virt-customize -a $IMAGE \
+  --install qemu-guest-agent \
+  --run-command 'systemctl enable qemu-guest-agent'
+
+# 2. Create VM
+qm create $VMID --memory $MEM --cores $CORES --name $VMNAME --net0 virtio,bridge=vmbr0
+
+# 3. Import disk and attach
+qm disk import $VMID $IMAGE local-lvm
+qm set $VMID --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-$VMID-disk-0
+
+# 4. Add Cloud-init and boot settings
+qm set $VMID --ide2 local-lvm:cloudinit
+qm set $VMID --boot c --bootdisk scsi0
+
+# 5. Add serial console
+qm set $VMID --serial0 socket --vga serial0
+
+# 6. Enable QEMU Guest Agent in Proxmox VM config
+qm set $VMID --agent enabled=1
+
+# 7. Convert to template
+qm template $VMID
+
+```
+
 
 ### Issue : 1 
 
