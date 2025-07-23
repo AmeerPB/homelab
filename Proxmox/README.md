@@ -100,6 +100,9 @@ qm set $VMID --onboot 1
 
 # 9. Create a user
 qm set $VMID --ciuser $USER_NAME
+
+# 10. Add SSH public key
+qm set $VMID --sshkey /root/.ssh/ameer_active.pub
 ```
 
 
