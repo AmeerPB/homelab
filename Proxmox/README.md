@@ -95,6 +95,8 @@ qm set $VMID --agent enabled=1
 # 7. Convert to template
 qm template $VMID
 
+# 8. Enable Start at boot
+qm set $VMID --onboot 1
 ```
 
 
