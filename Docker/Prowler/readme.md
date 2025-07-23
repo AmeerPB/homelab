@@ -19,3 +19,9 @@ docker run -ti --rm \
 -v ./output:/home/prowler/output \
 toniblyx/prowler:latest
 ```
+
+```.env``` sample
+``` yaml
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+```
