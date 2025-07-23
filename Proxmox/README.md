@@ -103,6 +103,9 @@ qm set $VMID --ciuser $USER_NAME
 
 # 10. Add SSH public key
 qm set $VMID --sshkey /root/.ssh/ameer_active.pub
+
+# 11. Set network config to DHCP
+qm set $VMID --ipconfig0 ip=dhcp
 ```
 
 
