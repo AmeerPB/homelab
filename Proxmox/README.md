@@ -106,6 +106,9 @@ qm set $VMID --sshkey /root/.ssh/ameer_active.pub
 
 # 11. Set network config to DHCP
 qm set $VMID --ipconfig0 ip=dhcp
+
+# 12. Set DNS Server
+qm set $VMID --nameserver $NAME_SERVER
 ```
 
 
