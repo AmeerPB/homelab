@@ -14,7 +14,7 @@ resource "proxmox_vm_qemu" "kube-server" {
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
   disk {
-    slot = 0
+    id = "scsi0"
     size = "30G"
     type = "scsi"
     storage = "local-lvm"
