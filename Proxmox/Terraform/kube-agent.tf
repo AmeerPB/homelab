@@ -19,6 +19,7 @@ resource "proxmox_vm_qemu" "kube-agent" {
     iothread = true
   }
   network {
+    id = 0
     model = "virtio"
     bridge = "vmbr0"
   }
