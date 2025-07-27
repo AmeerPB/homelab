@@ -6,8 +6,10 @@ resource "proxmox_vm_qemu" "kube-server" {
   clone = "k8s-Master"
   agent = 1
   os_type = "cloud-init"
-  cores = 2
-  sockets = 1
+  cpu   {
+    cores = 2
+    sockets = 1
+  }
   memory = 4096
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
