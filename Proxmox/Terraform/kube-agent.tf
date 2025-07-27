@@ -1,9 +1,9 @@
 resource "proxmox_vm_qemu" "kube-agent" {
-  count = 2
+  count = 1
   name = "kube-agent-0${count.index + 1}"
   target_node = "prox-1u"
-  vmid = "50${count.index + 1}"
-  clone = "ubuntu-2004-cloudinit-template"
+  vmid = "42${count.index + 1}"
+  clone = "k8s-Master"
   agent = 1
   os_type = "cloud-init"
   cores = 2
@@ -14,10 +14,9 @@ resource "proxmox_vm_qemu" "kube-agent" {
   bootdisk = "scsi0"
   disk {
     slot = 0
-    size = "10G"
+    size = "50G"
     type = "scsi"
-    storage = "local-zfs"
-    #storage_type = "zfspool"
+    storage = "local-lvm"
     iothread = 1
   }
   network {
@@ -25,17 +24,12 @@ resource "proxmox_vm_qemu" "kube-agent" {
     bridge = "vmbr0"
   }
   
-  network {
-    model = "virtio"
-    bridge = "vmbr17"
-  }
   lifecycle {
     ignore_changes = [
       network,
     ]
   }
-  ipconfig0 = "ip=10.98.1.5${count.index + 1}/24,gw=10.98.1.1"
-  ipconfig1 = "ip=10.17.0.5${count.index + 1}/24"
+  ipconfig0 = "ip=192.168.1.10${count.index + 1}/24,gw=198.168.1.1"
   sshkeys = <<EOF
   ${var.ssh_key}
   EOF
