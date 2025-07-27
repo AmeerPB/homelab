@@ -8,7 +8,6 @@ resource "proxmox_vm_qemu" "kube-agent" {
   os_type = "cloud-init"
   cores = 2
   sockets = 1
-  cpu = "host"
   memory = 4096
   scsihw = "virtio-scsi-pci"
   bootdisk = "scsi0"
