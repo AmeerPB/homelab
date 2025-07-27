@@ -24,10 +24,6 @@ resource "proxmox_vm_qemu" "kube-server" {
     bridge = "vmbr0"
   }
   
-  network {
-    model = "virtio"
-    bridge = "vmbr0"
-  }
   lifecycle {
     ignore_changes = [
       network,
