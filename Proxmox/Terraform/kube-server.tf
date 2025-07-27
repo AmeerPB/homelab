@@ -16,7 +16,7 @@ resource "proxmox_vm_qemu" "kube-server" {
   disk {
     id = "scsi0"
     size = "30G"
-    type = "scsi"
+    type = "disk"
     storage = "local-lvm"
     iothread = true
   }
