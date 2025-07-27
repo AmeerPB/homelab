@@ -16,7 +16,7 @@ resource "proxmox_vm_qemu" "kube-agent" {
     size = "50G"
     type = "scsi"
     storage = "local-lvm"
-    iothread = 1
+    iothread = true
   }
   network {
     model = "virtio"
