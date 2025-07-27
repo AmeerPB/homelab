@@ -14,7 +14,7 @@ resource "proxmox_vm_qemu" "kube-agent" {
   disk {
     slot = 0
     size = "50G"
-    type = "scsi"
+    type = "disk"
     storage = "local-lvm"
     iothread = true
   }
