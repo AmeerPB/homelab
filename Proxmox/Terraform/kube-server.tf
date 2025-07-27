@@ -1,7 +1,7 @@
 resource "proxmox_vm_qemu" "kube-server" {
   count = 1
   name = "kube-server-0${count.index + 1}"
-  target_node = "prox-1u"
+  target_node = "russia"
   vmid = "41${count.index + 1}"
   clone = "k8s-Master"
   agent = 1
