@@ -52,19 +52,6 @@ network:
 
 to this
 
-``` yaml
-network:
-    version: 2
-    ethernets:
-        eth0:
-            dhcp4: false
-            addresses:
-              - 192.168.1.200/24
-            gateway4: 192.168.1.1
-            nameservers:
-              addresses:
-                - 192.168.1.250
-```
 
 ``` yaml
 network:
