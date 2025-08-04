@@ -70,7 +70,7 @@ network:
 ```
 
 
-Then change the file permission to redonly to file owner (ie; root)
+Then change the file permission to readonly to file owner (ie; root)
 
 ``` bash
 chmod 600 /etc/netplan/50-cloud-init.yaml
