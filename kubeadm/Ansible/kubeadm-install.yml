@@ -176,3 +176,23 @@
           - kubeadm
           - kubectl
         state: hold        
+
+    - name: Set hostname for master1
+      hostname:
+        name: master1.machinesarehere.in
+      when: inventory_hostname == "master1"
+
+    - name: Set hostname for master2
+      hostname:
+        name: master2.machinesarehere.in
+      when: inventory_hostname == "master2"
+
+    - name: Set hostname for worker1
+      hostname:
+        name: worker1.machinesarehere.in
+      when: inventory_hostname == "worker1"
+
+    - name: Set hostname for worker2
+      hostname:
+        name: worker2.machinesarehere.in
+      when: inventory_hostname == "worker2"        
