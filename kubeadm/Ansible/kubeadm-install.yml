@@ -112,3 +112,32 @@
 
     - name: Apply sysctl parameters
       command: sysctl --system
+
+    - name: Generate containerd default config
+      shell: |
+        containerd config default > /etc/containerd/config.toml
+      args:
+        creates: /etc/containerd/config.toml
+
+    - name: Backup original containerd config
+      copy:
+        src: /etc/containerd/config.toml
+        dest: /etc/containerd/config.toml-original
+        remote_src: yes
+
+    - name: Enable SystemdCgroup in containerd config
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: '^\s*SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Ensure containerd is active
+      systemd:
+        name: containerd
+        state: started      
