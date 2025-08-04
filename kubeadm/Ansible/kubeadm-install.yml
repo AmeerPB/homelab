@@ -25,6 +25,9 @@
       - overlay
       - br_netfilter
       - dm_crypt
+    k8s_repo_key_url: "https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key"
+    k8s_repo_key_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+    k8s_repo: "deb [signed-by={{ k8s_repo_key_path }}] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
 
   tasks:
 
@@ -141,3 +144,35 @@
       systemd:
         name: containerd
         state: started      
+
+    - name: Add Kubernetes apt keyring
+      ansible.builtin.shell: |
+        curl -fsSL "{{ k8s_repo_key_url }}" | gpg --dearmor -o {{ k8s_repo_key_path }}
+      args:
+        creates: "{{ k8s_repo_key_path }}"
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "{{ k8s_repo }}"
+        state: present
+        filename: kubernetes
+
+    - name: Update apt after adding Kubernetes repo
+      apt:
+        update_cache: yes
+
+    - name: Install kubeadm, kubelet, kubectl
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Hold kubeadm, kubelet, kubectl at current version
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: hold        
