@@ -66,6 +66,13 @@ network:
                 - 192.168.1.250
 ```
 
+Then change the file permission to redonly to file owner (ie; root)
+
+``` bash
+chmod 600 /etc/netplan/50-cloud-init.yaml
+```
+
+
 Then apply the configurations
 
 ``` bash 
