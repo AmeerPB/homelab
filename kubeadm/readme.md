@@ -66,6 +66,23 @@ network:
                 - 192.168.1.250
 ```
 
+``` yaml
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses:
+        - 192.168.1.200/24
+      routes:
+        - to: 0.0.0.0/0
+          via: 192.168.1.1
+      nameservers:
+        addresses:
+          - 192.168.1.250
+```
+
+
 Then change the file permission to redonly to file owner (ie; root)
 
 ``` bash
