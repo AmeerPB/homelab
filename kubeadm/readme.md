@@ -235,7 +235,7 @@ Updated (on 20thFeb2025)
 Here is the corrected Helm install command that includes both the correct IPAM settings and your additional features like Hubble, Prometheus, and kube-proxy replacement:
 
 ``` bash
-helm install cilium cilium/cilium --version 1.17.0 \
+helm install cilium cilium/cilium --version 1.18.0 \
   --namespace kube-system \
   --set ipam.mode=cluster-pool \
   --set ipam.operator.clusterPoolIPv4PodCIDR="10.50.0.0/16" \
