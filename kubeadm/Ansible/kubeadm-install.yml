@@ -21,6 +21,10 @@
       - containerd.io
       - docker-buildx-plugin
       - docker-compose-plugin
+    required_kernel_modules:
+      - overlay
+      - br_netfilter
+      - dm_crypt
 
   tasks:
 
@@ -86,3 +90,25 @@
         name: debian
         groups: docker
         append: yes
+
+    - name: Load required kernel modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ required_kernel_modules }}"
+
+    - name: Persist required kernel modules in /etc/modules-load.d/k8s.conf
+      copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Set net.ipv4.ip_forward=1 in /etc/sysctl.d/k8s.conf
+      copy:
+        dest: /etc/sysctl.d/k8s.conf
+        content: |
+          net.ipv4.ip_forward=1
+
+    - name: Apply sysctl parameters
+      command: sysctl --system
