@@ -1,0 +1,88 @@
+---
+- name: Kubeadm Kubernetes Node Preparation (Debian 12)
+  hosts: all
+  become: true
+
+  vars:
+    docker_packages_to_remove:
+      - docker.io
+      - docker-doc
+      - docker-compose
+      - docker-compose-v2
+      - podman-docker
+      - containerd
+      - runc
+    docker_apt_key_url: "https://download.docker.com/linux/debian/gpg"
+    docker_apt_key_path: "/etc/apt/keyrings/docker.asc"
+    docker_repo: "deb [arch=amd64 signed-by={{ docker_apt_key_path }}] https://download.docker.com/linux/debian {{ ansible_facts['lsb']['codename'] }} stable"
+    docker_packages_to_install:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+  tasks:
+
+    - name: Disable swap temporarily
+      command: swapoff -a
+
+    - name: Remove swap entry from /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^\s*[^#]\S+\s+none\s+swap\s+.*$'
+        replace: '# swap disabled by Ansible'
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Remove conflicting container runtimes
+      apt:
+        name: "{{ docker_packages_to_remove }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+
+    - name: Install required dependencies
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Create directory for Docker apt key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key
+      get_url:
+        url: "{{ docker_apt_key_url }}"
+        dest: "{{ docker_apt_key_path }}"
+        mode: '0644'
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "{{ docker_repo }}"
+        state: present
+        filename: docker
+
+    - name: Update apt after adding Docker repo
+      apt:
+        update_cache: yes
+
+    - name: Install Docker packages
+      apt:
+        name: "{{ docker_packages_to_install }}"
+        state: present
+
+    - name: Add 'debian' user to Docker group
+      user:
+        name: debian
+        groups: docker
+        append: yes
