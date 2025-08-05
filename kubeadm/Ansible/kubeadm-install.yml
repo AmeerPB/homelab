@@ -30,6 +30,9 @@
       - overlay
       - br_netfilter
       - dm_crypt
+    k8s_repo_key_url: "https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key"
+    k8s_repo_key_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+    k8s_repo: "deb [signed-by={{ k8s_repo_key_path }}] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
 
   tasks:
     - name: Disable swap temporarily
