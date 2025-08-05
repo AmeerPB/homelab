@@ -198,6 +198,15 @@ sudo kubeadm init \
   --upload-certs --v=5
 ```
 
+## On your control-plane node (master1)
+
+``` bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+
 ## Install helm
 **[Reference URL](https://helm.sh/docs/intro/install/)**
 
