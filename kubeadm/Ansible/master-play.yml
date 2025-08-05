@@ -1,0 +1,5 @@
+- import_playbook: kubeadm-install.yml
+- import_playbook: kubeadm-init.yml
+- import_playbook: extract-join-commands.yml
+- import_playbook: join-cluster.yml
+- import_playbook: deploy-cilium.yml
