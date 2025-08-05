@@ -122,8 +122,7 @@
       command: sysctl --system
 
     - name: Generate containerd default config
-      shell: |
-        containerd config default | tee /etc/containerd/config.toml > /dev/null
+      shell: containerd config default | tee /etc/containerd/config.toml
       args:
         creates: /etc/containerd/config.toml
       become: true
