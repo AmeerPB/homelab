@@ -4,6 +4,7 @@
   become: true
 
   tasks:
+
     - name: Initialize Kubernetes Control Plane using kubeadm
       command: >
         kubeadm init
@@ -13,3 +14,12 @@
         --v=5
       args:
         creates: /etc/kubernetes/admin.conf
+
+    - name: Copy admin.conf to .kube/config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0600'
