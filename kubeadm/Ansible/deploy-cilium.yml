@@ -5,9 +5,9 @@
 
   pre_tasks:
     - name: Download Helm binary
-      get_url:
-        url: https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz
-        dest: /tmp/helm.tar.gz
+      shell: curl -fsSL https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz -o /tmp/helm.tar.gz
+      args:
+        creates: /tmp/helm.tar.gz
 
     - name: Extract Helm binary
       unarchive:
@@ -16,11 +16,13 @@
         remote_src: yes
 
     - name: Move Helm binary to /usr/local/bin
-      copy:
-        src: /tmp/linux-amd64/helm
-        dest: /usr/local/bin/helm
-        mode: '0755'
+      command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
 
+    - name: Set executable permission on Helm binary
+      file:
+        path: /usr/local/bin/helm
+        mode: '0755'
+        
     - name: Ensure Helm is in PATH
       shell: helm version
       register: helm_check
