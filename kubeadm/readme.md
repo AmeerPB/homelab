@@ -62,7 +62,7 @@ network:
       addresses:
         - 192.168.1.200/24
       routes:
-        - to: 0.0.0.0/0
+        - to: default
           via: 192.168.1.1
       nameservers:
         addresses:
