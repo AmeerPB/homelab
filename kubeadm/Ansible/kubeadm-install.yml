@@ -170,12 +170,10 @@
         state: present
 
     - name: Hold kubeadm, kubelet, kubectl at current version
-      apt:
-        name:
-          - kubelet
-          - kubeadm
-          - kubectl
-        state: hold        
+      shell: |
+        apt-mark hold kubelet kubeadm kubectl
+      args:
+        warn: false
 
     - name: Set hostname for master1
       hostname:
