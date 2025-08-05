@@ -3,6 +3,32 @@
   hosts: master1
   become: true
 
+  pre_tasks:
+    - name: Download Helm binary
+      get_url:
+        url: https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz
+        dest: /tmp/helm.tar.gz
+
+    - name: Extract Helm binary
+      unarchive:
+        src: /tmp/helm.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Move Helm binary to /usr/local/bin
+      copy:
+        src: /tmp/linux-amd64/helm
+        dest: /usr/local/bin/helm
+        mode: '0755'
+
+    - name: Ensure Helm is in PATH
+      shell: helm version
+      register: helm_check
+
+    - name: Debug Helm Version
+      debug:
+        var: helm_check.stdout
+
   tasks:
     - name: Install Cilium CNI
       shell: |
