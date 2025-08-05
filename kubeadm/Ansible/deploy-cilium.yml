@@ -32,6 +32,20 @@
         var: helm_check.stdout
 
   tasks:
+    - name: Add Cilium Helm repository
+      shell: helm repo add cilium https://helm.cilium.io/
+      args:
+        creates: /etc/helm-cilium-added
+      register: cilium_repo_add
+
+    - name: Mark Cilium Helm repo as added
+      file:
+        path: /etc/helm-cilium-added
+        state: touch
+
+    - name: Update Helm repositories
+      shell: helm repo update    
+
     - name: Install Cilium CNI
       shell: |
         helm install cilium cilium/cilium --version 1.18.0 \
