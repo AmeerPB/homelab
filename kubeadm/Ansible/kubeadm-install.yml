@@ -26,6 +26,10 @@
       - curl
       - gnupg
       - lsb-release
+    required_kernel_modules:
+      - overlay
+      - br_netfilter
+      - dm_crypt
 
   tasks:
     - name: Disable swap temporarily
