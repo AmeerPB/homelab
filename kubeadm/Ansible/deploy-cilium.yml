@@ -51,7 +51,7 @@
         helm install cilium cilium/cilium --version 1.18.0 \
           --namespace kube-system \
           --set ipam.mode=cluster-pool \
-          --set ipam.operator.clusterPoolIPv4PodCIDR="10.50.0.0/16" \
+          --set ipam.operator.clusterPoolIPv4PodCIDRList='{10.50.0.0/16}' \
           --set ipam.operator.clusterPoolIPv4MaskSize=24 \
           --set kubeProxyReplacement=true \
           --set hubble.relay.enabled=true \
@@ -65,6 +65,8 @@
           --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}"
       args:
         creates: /etc/cilium-installed
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf        
       register: cilium_result
 
     - name: Mark Cilium as installed
