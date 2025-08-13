@@ -324,6 +324,17 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 ```
 
 
+## Install istio with Istioctl
+
+[Reference](https://istio.io/latest/docs/setup/install/istioctl/)
+
+1. Download the Istio release from [here](https://istio.io/latest/docs/setup/additional-setup/download-istio-release/)
+``` bash
+curl -L https://istio.io/downloadIstio | sh -
+sudo cp istio-*/bin/istioctl /usr/local/bin/istioctl
+istioctl install --set profile=demo
+```
+
 
 &nbsp;
    
