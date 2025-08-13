@@ -392,6 +392,16 @@ sudo cp istio-*/bin/istioctl /usr/local/bin/istioctl
 istioctl install --set profile=demo
 ```
 
+2. Configure a Namespace to use the service mesh of Istio by labelling the NS
+
+``` bash
+kubectl label namespace homelab istio-injection=enabled
+```
+3. Then, restart the deployment for the Istio/envoy proxy to inject
+
+
+
+
 
 &nbsp;
    
