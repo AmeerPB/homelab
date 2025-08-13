@@ -389,6 +389,38 @@ This will create a secret homelab-tls in istio-system with the cert & key, autom
 4. Create a VirtualService pointing to the service we created at step 2 
 
 
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: website
+  name: website
+  namespace: homelab
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: website
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: website
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+        ports:
+        - containerPort: 80
+
+```
+
+
+
 ## Install istio with Istioctl
 
 [Reference](https://istio.io/latest/docs/setup/install/istioctl/)
