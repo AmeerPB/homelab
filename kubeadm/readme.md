@@ -381,6 +381,14 @@ spec:
 This will create a secret homelab-tls in istio-system with the cert & key, automatically renewed.
 
 
+### Test the cet-manager with a nginx deployement and access the service with Istio ingress gateway
+
+1. Create a deployment manifest
+2. Create a service for the deployment
+3. Create a Gateway for the istio ingressgateway and this will take the TLS cert from the NS.
+4. Create a VirtualService pointing to the service we created at step 2 
+
+
 ## Install istio with Istioctl
 
 [Reference](https://istio.io/latest/docs/setup/install/istioctl/)
