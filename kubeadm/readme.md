@@ -378,6 +378,8 @@ spec:
     - "*.machinesarehere.in"
 ```    
 
+This will create a secret homelab-tls in istio-system with the cert & key, automatically renewed.
+
 
 ## Install istio with Istioctl
 
