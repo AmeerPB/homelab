@@ -315,7 +315,13 @@ helm install longhorn longhorn/longhorn --namespace longhorn-system --create-nam
 kubectl -n longhorn-system get pod
 ```
 
+## Add Cert-Manager for SSL and auto SSL renewals
 
+[Reference](https://cert-manager.io/docs/installation/)
+
+``` bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml
+```
 
 
 
