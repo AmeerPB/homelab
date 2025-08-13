@@ -323,6 +323,32 @@ kubectl -n longhorn-system get pod
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml
 ```
 
+### Create SSL of a domain with the DNS like Cloudflare
+
+1. Create a ClusterIssuer *(cluster wide)*
+2. Create a Certificate *(in the NS were we want the SSL)*
+
+```ClusterIssuer.yml```
+
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: ameerpb@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - dns01:
+        cloudflare:
+          email: ameerpb@gmail.com
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+```            
 
 ## Install istio with Istioctl
 
