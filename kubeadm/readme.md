@@ -431,6 +431,37 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+
+---
+
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: website-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - website.machinesarehere.in
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: homelab-tls
+      hosts:
+        - website.machinesarehere.in
+
+
 ```
 
 
