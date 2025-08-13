@@ -461,7 +461,24 @@ spec:
       hosts:
         - website.machinesarehere.in
 
+---
 
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: website-virtualservice
+  namespace: homelab
+spec:
+  hosts:
+    - website.machinesarehere.in
+  gateways:
+    - istio-system/website-gateway
+  http:
+    - route:
+        - destination:
+            host: website.homelab.svc.cluster.local
+            port:
+              number: 80
 ```
 
 
