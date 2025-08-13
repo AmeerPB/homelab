@@ -325,8 +325,13 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 ### Create SSL of a domain with the DNS like Cloudflare
 
+1. Create a secret for the CloudFlare API token
 1. Create a ClusterIssuer *(cluster wide)*
 2. Create a Certificate *(in the NS were we want the SSL)*
+
+
+
+
 
 ```ClusterIssuer.yml```
 
@@ -357,7 +362,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: homelab-cert
-  namespace: homelab
+  namespace: istio-system
 spec:
   secretName: homelab-tls
   issuerRef:
