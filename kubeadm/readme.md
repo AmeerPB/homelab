@@ -350,6 +350,26 @@ spec:
             key: api-token
 ```            
 
+```Certificate.yml```
+
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homelab-cert
+  namespace: homelab
+spec:
+  secretName: homelab-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: machinesarehere.in
+  dnsNames:
+    - machinesarehere.in
+    - "*.machinesarehere.in"
+```    
+
+
 ## Install istio with Istioctl
 
 [Reference](https://istio.io/latest/docs/setup/install/istioctl/)
