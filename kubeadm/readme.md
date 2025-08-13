@@ -329,7 +329,11 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 1. Create a ClusterIssuer *(cluster wide)*
 2. Create a Certificate *(in the NS were we want the SSL)*
 
-
+``` bash
+kubectl create secret generic cloudflare-api-token-secret \
+  --from-literal=api-token=CF_API_TOKEN_12345 \
+  -n cert-manager
+```  
 
 
 
