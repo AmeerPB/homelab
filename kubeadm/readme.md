@@ -304,7 +304,16 @@ helm install cilium cilium/cilium --version 1.17.0 \
   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
 ```
 
-## Add CSI for volume persistence
+## Add CSI for volume persistence (Longhorn)
+
+[Reference](https://longhorn.io/docs/1.9.1/deploy/install/install-with-helm/)
+
+``` bash
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.9.1
+kubectl -n longhorn-system get pod
+```
 
 
 
