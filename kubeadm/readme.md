@@ -573,6 +573,10 @@ helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml
 > ``` bash
 > helm upgrade loki grafana/loki -n monitoring -f values.yaml
 > ```
+> To delete a chart
+> ``` bash
+> helm delete <chart name> -n <NS>
+> ```
 
 
 &nbsp;
