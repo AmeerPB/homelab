@@ -563,7 +563,7 @@ helm install grafana grafana/grafana --version 9.3.2 -n monitoring
 
 kubectl create -f alloy-cm.yml
 
-helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml
+helm install alloy grafana/alloy --version 1.2.1 -n monitoring -f values.yml
 ```
 
 
