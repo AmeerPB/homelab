@@ -1,6 +1,6 @@
 # kubeadm installation
 
-[Kubeadm logo]
+![Kubeadm logo](assets/kubeadm-stacked-color.png)
 
 
 #### Basic steps
