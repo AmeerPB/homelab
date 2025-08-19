@@ -315,6 +315,33 @@ helm install longhorn longhorn/longhorn --namespace longhorn-system --create-nam
 kubectl -n longhorn-system get pod
 ```
 
+```longhorn-ingress.yml```
+
+``` yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  ingressClassName: kong
+  tls:
+  - hosts:
+      - longhorn.machinesarehere.in
+    secretName: homelab-tls
+  rules:
+  - host: longhorn.machinesarehere.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: longhorn
+            port:
+              number: 80
+```              
+
 ## Add Cert-Manager for SSL and auto SSL renewals
 
 [Reference](https://cert-manager.io/docs/installation/)
