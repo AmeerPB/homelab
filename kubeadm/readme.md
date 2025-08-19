@@ -1,5 +1,8 @@
 # kubeadm installation
 
+[Kubeadm logo]
+
+
 #### Basic steps
 
 1. Create a (Debian 12) VM from the template and assign static IP (via netplan)
