@@ -530,6 +530,16 @@ kubectl label namespace homelab istio-injection=enabled
 
 
 
+## Install Kong Ingress controller
+
+``` bash
+helm install kong kong/kong -n kong --version 2.51.0
+```
+
+
+
+
+
 
 
 &nbsp;
