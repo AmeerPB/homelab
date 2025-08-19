@@ -566,6 +566,15 @@ kubectl create -f alloy-cm.yml
 helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml
 ```
 
+
+> [!NOTE]
+> if you need to make an edit to the values of anyAlloy/Grafana/Loki helm chart, 
+> then please try to update the chart as follows:
+> ``` bash
+> helm upgrade loki grafana/loki -n monitoring -f values.yaml
+> ```
+
+
 &nbsp;
    
 > [!WARNING]  
