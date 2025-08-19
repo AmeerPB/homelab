@@ -551,7 +551,7 @@ Steps:
 - create alloy-cm.yml for Alloy
 - apply cm (```k create -f alloy-cm.yml```)
 - create values.yml for alloy istallation
-- install alloy via HELM (```helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml```)
+- install alloy via HELM (```helm install alloy grafana/alloy --version 1.2.1 -n monitoring -f values.yml```)
 
 ``` bash
 kubectl create ns monitoring
