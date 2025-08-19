@@ -541,14 +541,14 @@ helm install kong kong/kong -n kong --version 2.51.0
 
 Steps:
 
-[] create NS
-[] create values.yaml for Loki
-[] apply helm for Loki (```helm install loki grafana/loki --version 6.36.1 -n monitoring -f values.yml```)
-[] apply helm for Grafana (```helm install grafana grafana/grafana --version 9.3.2 -n monitoring```)
-[] create alloy-cm.yml for Alloy
-[] apply cm (```k create -f alloy-cm.yml```)
-[] create values.yml for alloy istallation
-[] install alloy via HELM (```helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml```)
+- create NS
+- create values.yaml for Loki
+- apply helm for Loki (```helm install loki grafana/loki --version 6.36.1 -n monitoring -f values.yml```)
+- apply helm for Grafana (```helm install grafana grafana/grafana --version 9.3.2 -n monitoring```)
+- create alloy-cm.yml for Alloy
+- apply cm (```k create -f alloy-cm.yml```)
+- create values.yml for alloy istallation
+- install alloy via HELM (```helm install alloy grafana/alloy --version 1.2.1 -n alloy -f values.yml```)
 
 ``` bash
 kubectl create ns monitoring
