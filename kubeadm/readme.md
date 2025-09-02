@@ -566,6 +566,125 @@ kubectl create -f alloy-cm.yml
 helm install alloy grafana/alloy --version 1.2.1 -n monitoring -f values.yml
 ```
 
++ To scrape pod,svc logs and sent Loki via Alloy, 
++ apply the below configMap and restart the alloy daemonset.
++ After the alloy pods are running, verify the latest logsin Grafana Logs/App
+
+```alloy-cm.yml```
+
+``` yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-cm
+  namespace: alloy
+data:
+  config.alloy: |
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    discovery.relabel "pod_logs" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_name",
+          "__meta_kubernetes_pod_label_app",
+          "__meta_kubernetes_pod_controller_name",
+          "__meta_kubernetes_pod_name",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "app"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_instance",
+          "__meta_kubernetes_pod_label_instance",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "instance"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_component",
+          "__meta_kubernetes_pod_label_component",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "component"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label  = "node_name"
+      }
+
+      rule {
+        source_labels = ["namespace", "app"]
+        separator     = "/"
+        target_label  = "job"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+        separator     = "/"
+        replacement   = "/var/log/pods/*$1/*.log"
+        target_label  = "__path__"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash",
+          "__meta_kubernetes_pod_annotation_kubernetes_io_config_hash",
+          "__meta_kubernetes_pod_container_name",
+        ]
+        separator   = "/"
+        regex       = "true/(.*)"
+        replacement = "/var/log/pods/*$1/*.log"
+        target_label = "__path__"
+      }
+    }
+
+    local.file_match "pods" {
+      path_targets = discovery.relabel.pod_logs.output
+    }
+
+    loki.source.file "pods" {
+      targets    = local.file_match.pods.targets
+      forward_to = [loki.process.pod_logs.receiver]
+    }
+
+    loki.process "pod_logs" {
+      forward_to = [loki.write.loki.receiver]
+    }
+
+    loki.write "loki" {
+      endpoint {
+        url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        tenant_id = "homelab"
+      }
+    }
+```    
+
+
+
 
 > [!NOTE]
 > if you need to make an edit to the values of anyAlloy/Grafana/Loki helm chart, 
