@@ -13,5 +13,21 @@
 
 [Reference](https://docs.pi-hole.net/main/basic-install/)
 
+``` bash
+curl -sSL https://install.pi-hole.net | bash
+```
+
+
+### Change web UI port
+``` bash
+# Disable pihole-FTL.service
+systemctl stop pihole-FTL.service
+
+# Change web UI port in /etc/pihole/pihole.toml
+port = "8080o,[::]:8080o" 
+
+# Enable pihole-FTL.service
+systemctl stop pihole-FTL.service && systemctl status pihole-FTL.service
+```
 
 
