@@ -1,4 +1,4 @@
-## Setup instructions for istalling Pi-Hole and 
+## Setup instructions for installing Pi-Hole and 
 ## setting SSL with NGINX reverse-proxy
 
 
