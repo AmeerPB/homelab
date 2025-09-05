@@ -39,7 +39,7 @@ apt update && apt install nginx -y
 ### Generate SSL for domain with certbot
 
 ``` bash
-sudo certbot certonly --manual --preferred-challenges=dns -d <domain-name>
+sudo certbot certonly --manual --preferred-challenges=dns -d <*.domain-name> <domain-name>
 ```
 
 ### Add and configure pihole.conf in /etc/nginx/sites-available/
