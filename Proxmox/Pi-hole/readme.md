@@ -27,7 +27,7 @@ systemctl stop pihole-FTL.service
 port = "8080o,[::]:8080o" 
 
 # Enable pihole-FTL.service
-systemctl stop pihole-FTL.service && systemctl status pihole-FTL.service
+systemctl start pihole-FTL.service && systemctl status pihole-FTL.service
 ```
 
 
