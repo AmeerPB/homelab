@@ -8,7 +8,7 @@ services:
       - "8090:80"   # web UI
       #- "8443:443"  # SSL (optional)
     environment:
-      DATABASE_URL: postgres://kanboard${POSTGRES_PASSWORD}:@db/kanboard
+      DATABASE_URL: postgres://kanboard:${POSTGRES_PASSWORD}@db/kanboard
       PLUGIN_INSTALLER: "true"
     volumes:
       - data:/var/www/app/data
