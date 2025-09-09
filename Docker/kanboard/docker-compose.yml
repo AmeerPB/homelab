@@ -13,6 +13,7 @@ services:
     volumes:
       - data:/var/www/app/data
       - plugins:/var/www/app/plugins
+      - certs:/etc/nginx/ssl
     depends_on:
       db:
         condition: service_healthy
@@ -42,4 +43,4 @@ volumes:
   data:
   plugins:
   db:
-
+  certs:
