@@ -17,7 +17,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    user: "1000:1000"   # run as non-root (replace with your UID:GID)
     security_opt:
       - no-new-privileges:true
     read_only: false   # must be writable for data/plugins
