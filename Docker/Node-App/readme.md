@@ -1,1 +1,1 @@
-### Node app with a cronjb inside runs via supervisor
+### Node app with a cronjb inside runs via supervisord
