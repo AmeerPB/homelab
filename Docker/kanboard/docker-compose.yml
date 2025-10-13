@@ -3,7 +3,7 @@ services:
   app:
     image: ${KANBOARD_IMAGE:-kanboard/kanboard:latest}
     container_name: kanboard
-    restart: unless-stopped
+    restart: always
     ports:
       - "8090:80"   # web UI
       #- "8443:443"  # SSL (optional)
@@ -23,7 +23,7 @@ services:
 
   db:
     image: postgres:15
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: kanboard
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
