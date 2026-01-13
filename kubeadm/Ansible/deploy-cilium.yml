@@ -1,0 +1,79 @@
+---
+- name: Deploy Cilium CNI via Helm (only on master1)
+  hosts: master1
+  become: true
+
+  pre_tasks:
+    - name: Download Helm binary
+      shell: curl -fsSL https://get.helm.sh/helm-v3.17.4-linux-amd64.tar.gz -o /tmp/helm.tar.gz
+      args:
+        creates: /tmp/helm.tar.gz
+
+    - name: Extract Helm binary
+      unarchive:
+        src: /tmp/helm.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Move Helm binary to /usr/local/bin
+      command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+
+    - name: Set executable permission on Helm binary
+      file:
+        path: /usr/local/bin/helm
+        mode: '0755'
+        
+    - name: Ensure Helm is in PATH
+      shell: helm version
+      register: helm_check
+
+    - name: Debug Helm Version
+      debug:
+        var: helm_check.stdout
+
+  tasks:
+    - name: Add Cilium Helm repository
+      shell: helm repo add cilium https://helm.cilium.io/
+      args:
+        creates: /etc/helm-cilium-added
+      register: cilium_repo_add
+
+    - name: Mark Cilium Helm repo as added
+      file:
+        path: /etc/helm-cilium-added
+        state: touch
+
+    - name: Update Helm repositories
+      shell: helm repo update    
+
+    - name: Install Cilium CNI
+      shell: |
+        helm install cilium cilium/cilium --version 1.18.0 \
+          --namespace kube-system \
+          --set ipam.mode=cluster-pool \
+          --set ipam.operator.clusterPoolIPv4PodCIDRList='{10.50.0.0/16}' \
+          --set ipam.operator.clusterPoolIPv4MaskSize=24 \
+          --set kubeProxyReplacement=true \
+          --set hubble.relay.enabled=true \
+          --set hubble.ui.enabled=true \
+          --set prometheus.enabled=true \
+          --set operator.prometheus.enabled=true \
+          --set hubble.enabled=true \
+          --set hubble.metrics.enableOpenMetrics=true \
+          --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2}" \
+          --set hubble.metrics.httpV2.exemplars=true \
+          --set hubble.metrics.httpV2.labelsContext="{source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction}"
+      args:
+        creates: /etc/cilium-installed
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf        
+      register: cilium_result
+
+    - name: Mark Cilium as installed
+      file:
+        path: /etc/cilium-installed
+        state: touch
+
+    - name: Show Cilium Helm result
+      debug:
+        var: cilium_result.stdout_lines

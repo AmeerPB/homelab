@@ -1,0 +1,35 @@
+---
+- name: Extract kubeadm join commands on master1
+  hosts: master1
+  become: true
+
+  tasks:
+    - name: Get kubeadm join command for control plane
+      shell: |
+        kubeadm token create --print-join-command --ttl 1h \
+        --certificate-key $(kubeadm init phase upload-certs --upload-certs | tail -1) \
+        > /tmp/join-master.sh
+      args:
+        executable: /bin/bash
+
+    - name: Get kubeadm join command for workers
+      shell: kubeadm token create --print-join-command > /tmp/join-worker.sh
+      args:
+        executable: /bin/bash
+
+    - name: Set permissions on join scripts
+      file:
+        path: "{{ item }}"
+        mode: '0755'
+      loop:
+        - /tmp/join-master.sh
+        - /tmp/join-worker.sh
+
+    - name: Fetch join scripts to Ansible control node
+      fetch:
+        src: "{{ item }}"
+        dest: "./{{ inventory_hostname }}/"
+        flat: yes
+      loop:
+        - /tmp/join-master.sh
+        - /tmp/join-worker.sh

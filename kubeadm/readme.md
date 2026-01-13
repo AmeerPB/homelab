@@ -1,5 +1,8 @@
 # kubeadm installation
 
+![Kubeadm logo](assets/kubeadm-stacked-color.png)
+
+
 #### Basic steps
 
 1. Create a (Debian 12) VM from the template and assign static IP (via netplan)
@@ -35,31 +38,47 @@ Modify the ```eth0``` interface on the ```/etc/netplan/50-cloud-init.yaml``` fil
 change from 
 
 ``` yaml
+# This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
 network:
     version: 2
     ethernets:
         eth0:
             dhcp4: true
             match:
-                macaddress: bc:24:11:e8:31:01
+                macaddress: bc:24:11:ff:84:85
             set-name: eth0
 ```            
 
 to this
 
+
 ``` yaml
 network:
-    version: 2
-    ethernets:
-        eth0:
-            dhcp4: false
-            addresses:
-              - 192.168.1.200/24
-            gateway4: 192.168.1.1
-            nameservers:
-              addresses:
-                - 192.168.1.250
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses:
+        - 192.168.1.200/24
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses:
+          - 192.168.1.250
 ```
+
+
+Then change the file permission to readonly to file owner (ie; root)
+
+``` bash
+chmod 600 /etc/netplan/50-cloud-init.yaml
+```
+
 
 Then apply the configurations
 
@@ -158,9 +177,9 @@ sudo systemctl status containerd
 sudo apt update
 sudo apt install -y apt-transport-https ca-certificates curl gpg
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
@@ -181,6 +200,15 @@ sudo kubeadm init \
   --control-plane-endpoint "192.168.1.48:6443" \
   --upload-certs --v=5
 ```
+
+## On your control-plane node (master1)
+
+``` bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
 
 ## Install helm
 **[Reference URL](https://helm.sh/docs/intro/install/)**
@@ -219,7 +247,7 @@ Updated (on 20thFeb2025)
 Here is the corrected Helm install command that includes both the correct IPAM settings and your additional features like Hubble, Prometheus, and kube-proxy replacement:
 
 ``` bash
-helm install cilium cilium/cilium --version 1.17.0 \
+helm install cilium cilium/cilium --version 1.18.0 \
   --namespace kube-system \
   --set ipam.mode=cluster-pool \
   --set ipam.operator.clusterPoolIPv4PodCIDR="10.50.0.0/16" \
@@ -279,10 +307,395 @@ helm install cilium cilium/cilium --version 1.17.0 \
   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
 ```
 
-## Add CSI for volume persistence
+## Add CSI for volume persistence (Longhorn)
+
+[Reference](https://longhorn.io/docs/1.9.1/deploy/install/install-with-helm/)
+
+``` bash
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.9.1
+kubectl -n longhorn-system get pod
+```
+
+```longhorn-ingress.yml```
+
+``` yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  ingressClassName: kong
+  tls:
+  - hosts:
+      - longhorn.machinesarehere.in
+    secretName: homelab-tls
+  rules:
+  - host: longhorn.machinesarehere.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: longhorn
+            port:
+              number: 80
+```              
+
+## Add Cert-Manager for SSL and auto SSL renewals
+
+[Reference](https://cert-manager.io/docs/installation/)
+
+``` bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml
+```
+
+### Create SSL of a domain with the DNS like Cloudflare
+
+1. Create a secret for the CloudFlare API token
+1. Create a ClusterIssuer *(cluster wide)*
+2. Create a Certificate *(in the NS were we want the SSL)*
+
+``` bash
+kubectl create secret generic cloudflare-api-token-secret \
+  --from-literal=api-token=CF_API_TOKEN_12345 \
+  -n cert-manager
+```  
 
 
 
+```ClusterIssuer.yml```
+
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: ameerpb@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - dns01:
+        cloudflare:
+          email: ameerpb@gmail.com
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+```            
+
+```Certificate.yml```
+
+``` yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homelab-cert
+  namespace: istio-system
+spec:
+  secretName: homelab-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: machinesarehere.in
+  dnsNames:
+    - machinesarehere.in
+    - "*.machinesarehere.in"
+```    
+
+This will create a secret homelab-tls in istio-system with the cert & key, automatically renewed.
+
+
+### Test the cet-manager with a nginx deployement and access the service with Istio ingress gateway
+
+1. Create a deployment manifest
+2. Create a service for the deployment
+3. Create a Gateway for the istio ingressgateway and this will take the TLS cert from the NS.
+4. Create a VirtualService pointing to the service we created at step 2 
+
+
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: website
+  name: website
+  namespace: homelab
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: website
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: website
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+        ports:
+        - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-svc
+  namespace: homelab
+spec:
+  selector:
+    app: website
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: website-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - website.machinesarehere.in
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: homelab-tls
+      hosts:
+        - website.machinesarehere.in
+
+---
+
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: website-virtualservice
+  namespace: homelab
+spec:
+  hosts:
+    - website.machinesarehere.in
+  gateways:
+    - istio-system/website-gateway
+  http:
+    - route:
+        - destination:
+            host: website.homelab.svc.cluster.local
+            port:
+              number: 80
+```
+
+
+
+## Install istio with Istioctl
+
+[Reference](https://istio.io/latest/docs/setup/install/istioctl/)
+
+1. Download the Istio release from [here](https://istio.io/latest/docs/setup/additional-setup/download-istio-release/)
+``` bash
+curl -L https://istio.io/downloadIstio | sh -
+sudo cp istio-*/bin/istioctl /usr/local/bin/istioctl
+istioctl install --set profile=demo
+```
+
+2. Configure a Namespace to use the service mesh of Istio by labelling the NS
+
+``` bash
+kubectl label namespace homelab istio-injection=enabled
+```
+3. Then, restart the deployment for the Istio/envoy proxy to inject
+
+
+
+## Install Kong Ingress controller
+
+``` bash
+helm install kong kong/kong -n kong --version 2.51.0
+```
+
+
+## Install and setup Grafana Alloy with Grafana UI and Loki
+
+Steps:
+
+- create NS
+- create values.yaml for Loki
+- apply helm for Loki (```helm install loki grafana/loki --version 6.36.1 -n monitoring -f values.yml```)
+- apply helm for Grafana (```helm install grafana grafana/grafana --version 9.3.2 -n monitoring```)
+- create alloy-cm.yml for Alloy
+- apply cm (```k create -f alloy-cm.yml```)
+- create values.yml for alloy istallation
+- install alloy via HELM (```helm install alloy grafana/alloy --version 1.2.1 -n monitoring -f values.yml```)
+
+``` bash
+kubectl create ns monitoring
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+helm install loki grafana/loki --version 6.36.1 -n monitoring -f values.yml
+helm install grafana grafana/grafana --version 9.3.2 -n monitoring
+
+kubectl create -f alloy-cm.yml
+
+helm install alloy grafana/alloy --version 1.2.1 -n monitoring -f values.yml
+```
+
++ To scrape pod,svc logs and sent Loki via Alloy, 
++ apply the below configMap and restart the alloy daemonset.
++ After the alloy pods are running, verify the latest logsin Grafana Logs/App
+
+```alloy-cm.yml```
+
+``` yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-cm
+  namespace: alloy
+data:
+  config.alloy: |
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    discovery.relabel "pod_logs" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_name",
+          "__meta_kubernetes_pod_label_app",
+          "__meta_kubernetes_pod_controller_name",
+          "__meta_kubernetes_pod_name",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "app"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_instance",
+          "__meta_kubernetes_pod_label_instance",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "instance"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_label_app_kubernetes_io_component",
+          "__meta_kubernetes_pod_label_component",
+        ]
+        regex        = "^;*([^;]+)(;.*)?$"
+        target_label = "component"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label  = "node_name"
+      }
+
+      rule {
+        source_labels = ["namespace", "app"]
+        separator     = "/"
+        target_label  = "job"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+        separator     = "/"
+        replacement   = "/var/log/pods/*$1/*.log"
+        target_label  = "__path__"
+      }
+
+      rule {
+        source_labels = [
+          "__meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash",
+          "__meta_kubernetes_pod_annotation_kubernetes_io_config_hash",
+          "__meta_kubernetes_pod_container_name",
+        ]
+        separator   = "/"
+        regex       = "true/(.*)"
+        replacement = "/var/log/pods/*$1/*.log"
+        target_label = "__path__"
+      }
+    }
+
+    local.file_match "pods" {
+      path_targets = discovery.relabel.pod_logs.output
+    }
+
+    loki.source.file "pods" {
+      targets    = local.file_match.pods.targets
+      forward_to = [loki.process.pod_logs.receiver]
+    }
+
+    loki.process "pod_logs" {
+      forward_to = [loki.write.loki.receiver]
+    }
+
+    loki.write "loki" {
+      endpoint {
+        url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        tenant_id = "homelab"
+      }
+    }
+```    
+
+
+
+
+> [!NOTE]
+> if you need to make an edit to the values of anyAlloy/Grafana/Loki helm chart, 
+> then please try to update the chart as follows:
+> ``` bash
+> helm upgrade loki grafana/loki -n monitoring -f values.yaml
+> ```
+> To delete a chart
+> ``` bash
+> helm delete <chart name> -n <NS>
+> ```
 
 
 &nbsp;

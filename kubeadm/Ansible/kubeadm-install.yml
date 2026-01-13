@@ -1,0 +1,204 @@
+---
+- name: Kubeadm Kubernetes Node Preparation (ubuntu 24.02 noble)
+  hosts: all
+  become: true
+
+  vars:
+    docker_packages_to_remove:
+      - docker.io
+      - docker-doc
+      - docker-compose
+      - docker-compose-v2
+      - podman-docker
+      - containerd
+      - runc
+    docker_apt_key_url: "https://download.docker.com/linux/ubuntu/gpg"
+    docker_apt_key_path: "/etc/apt/keyrings/docker.asc"
+    docker_repo_path: "/etc/apt/sources.list.d/docker.list"
+    docker_packages_to_install:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    docker_required_dependencies:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    required_kernel_modules:
+      - overlay
+      - br_netfilter
+      - dm_crypt
+    k8s_repo_key_url: "https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key"
+    k8s_repo_key_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+    k8s_repo: "deb [signed-by={{ k8s_repo_key_path }}] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /"
+
+  tasks:
+    - name: Disable swap temporarily
+      command: swapoff -a
+
+    - name: Remove swap entry from /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^\s*[^#]\S+\s+none\s+swap\s+.*$'
+        replace: '# swap disabled by Ansible'
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Remove conflicting container runtimes
+      apt:
+        name: "{{ docker_packages_to_remove }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+
+    - name: Install required dependencies
+      apt:
+        name: "{{ docker_required_dependencies }}"
+        state: present
+
+    - name: Ensure /etc/apt/keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key using curl (Ubuntu 24.04 workaround)
+      shell: |
+        curl -fsSL {{ docker_apt_key_url }} -o {{ docker_apt_key_path }}
+      args:
+        creates: "{{ docker_apt_key_path }}"
+
+    - name: Set proper permissions on Docker GPG key
+      file:
+        path: "{{ docker_apt_key_path }}"
+        mode: '0644'
+
+    - name: Add Docker APT repository
+      copy:
+        dest: "{{ docker_repo_path }}"
+        content: |
+          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_facts['lsb']['codename'] }} stable
+
+    - name: Update apt after adding Docker repo
+      apt:
+        update_cache: yes
+
+    - name: Install Docker packages
+      apt:
+        name: "{{ docker_packages_to_install }}"
+        state: present
+
+    - name: Add 'ubuntu' user to Docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Load required kernel modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ required_kernel_modules }}"
+
+    - name: Persist required kernel modules in /etc/modules-load.d/k8s.conf
+      copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Set net.ipv4.ip_forward=1 in /etc/sysctl.d/k8s.conf
+      copy:
+        dest: /etc/sysctl.d/k8s.conf
+        content: |
+          net.ipv4.ip_forward=1
+
+    - name: Apply sysctl parameters
+      command: sysctl --system
+
+    - name: Generate containerd default config
+      shell: containerd config default | tee /etc/containerd/config.toml
+      args:
+        creates: /etc/containerd/config.toml
+      become: true
+
+    - name: Backup original containerd config
+      copy:
+        src: /etc/containerd/config.toml
+        dest: /etc/containerd/config.toml-original
+        remote_src: yes
+
+    - name: Enable SystemdCgroup in containerd config
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: '^\s*SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Ensure containerd is active
+      systemd:
+        name: containerd
+        state: started      
+
+    - name: Add Kubernetes apt keyring
+      ansible.builtin.shell: |
+        curl -fsSL "{{ k8s_repo_key_url }}" | gpg --dearmor -o {{ k8s_repo_key_path }}
+      args:
+        creates: "{{ k8s_repo_key_path }}"
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "{{ k8s_repo }}"
+        state: present
+        filename: kubernetes
+
+    - name: Update apt after adding Kubernetes repo
+      apt:
+        update_cache: yes
+
+    - name: Install kubeadm, kubelet, kubectl
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Hold kubelet
+      command: apt-mark hold kubelet
+
+    - name: Hold kubeadm
+      command: apt-mark hold kubeadm
+
+    - name: Hold kubectl
+      command: apt-mark hold kubectl
+
+    - name: Set hostname for master1
+      hostname:
+        name: master1.machinesarehere.in
+      when: inventory_hostname == "master1"
+
+    - name: Set hostname for master2
+      hostname:
+        name: master2.machinesarehere.in
+      when: inventory_hostname == "master2"
+
+    - name: Set hostname for worker1
+      hostname:
+        name: worker1.machinesarehere.in
+      when: inventory_hostname == "worker1"
+
+    - name: Set hostname for worker2
+      hostname:
+        name: worker2.machinesarehere.in
+      when: inventory_hostname == "worker2"        

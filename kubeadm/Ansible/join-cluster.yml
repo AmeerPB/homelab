@@ -1,0 +1,16 @@
+---
+- name: Join remaining nodes to the Kubernetes cluster
+  hosts: master2:workers
+  become: true
+
+  tasks:
+    - name: Copy appropriate join script to node
+      copy:
+        src: "{{ playbook_dir }}/master1/{{ 'join-master.sh' if inventory_hostname == 'master2' else 'join-worker.sh' }}"
+        dest: /tmp/kubeadm-join.sh
+        mode: '0755'
+
+    - name: Run kubeadm join
+      command: bash /tmp/kubeadm-join.sh
+      args:
+        creates: /etc/kubernetes/kubelet.conf

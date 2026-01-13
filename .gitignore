@@ -37,3 +37,5 @@ terraform.rc
 
 **/.terraform.lock.hcl
 **/terraform.log
+### dotenv ###
+.env

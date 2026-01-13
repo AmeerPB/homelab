@@ -1,0 +1,23 @@
+---
+- name: Add SSH public key to all servers
+  hosts: all
+  become: yes
+  vars:
+    ssh_pub_key: "{{ lookup('file', '/root/.ssh/jumphost.pub') }}"
+    ssh_user: ubuntu
+
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: "/home/{{ ssh_user }}/.ssh"
+        state: directory
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        mode: '0700'
+
+    - name: Add public key to authorized_keys
+      authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ ssh_pub_key }}"
+        state: present
+        exclusive: no

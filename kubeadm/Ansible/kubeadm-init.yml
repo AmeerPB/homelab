@@ -1,0 +1,25 @@
+---
+- name: Initialize Kubernetes Control Plane on master1
+  hosts: master1
+  become: true
+
+  tasks:
+
+    - name: Initialize Kubernetes Control Plane using kubeadm
+      command: >
+        kubeadm init
+        --pod-network-cidr=10.50.0.0/16
+        --control-plane-endpoint=192.168.1.112:6443
+        --upload-certs
+        --v=5
+      args:
+        creates: /etc/kubernetes/admin.conf
+
+    - name: Copy admin.conf to .kube/config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0600'
